@@ -50,8 +50,9 @@ PAGES_BASE_PATH=/personal_blog npm run build
 3. `src/lib/posts.ts` 通过 eager `import.meta.glob('/posts/*.md', {query: '?raw'})` 导入所有 Markdown，并在模块加载时解析、去重、排除草稿和排序。
 4. `src/lib/post-parser.ts` 负责 slug、frontmatter、日期、正文和阅读时长校验。
 5. `src/lib/i18n.ts` 定义中英文界面词典，并通过 `localStorage` 保存页面组件语言；博文内容不自动翻译。
-6. `BentoLayout.tsx` 同时实现首页、档案列表、阅读视图、语言切换和 `#/posts/<slug>` 哈希导航；项目没有 React Router。
-7. `src/index.css` 定义 Tailwind v4 主题 token、排版、Markdown 正文样式和 reduced-motion 降级。
+6. `src/lib/post-route.ts` 负责文章 URL、OAuth 回跳恢复和临时会话中的文章 slug；查询参数是 Giscus 登录回跳的稳定路由，`#/posts/<slug>` 继续作为兼容链接。
+7. `BentoLayout.tsx` 同时实现首页、档案列表、阅读视图和语言切换；项目没有 React Router。
+8. `src/index.css` 定义 Tailwind v4 主题 token、排版、Markdown 正文样式和 reduced-motion 降级。
 
 `Articles.tsx`、`Connect.tsx`、`Header.tsx`、`Hero.tsx`、`Invite.tsx`、`Observe.tsx` 当前均未被运行时入口导入，属于遗留/候选展示组件。不要误以为修改它们会改变线上页面；复用或删除前先重新检查引用。
 
@@ -101,7 +102,7 @@ draft: false
 - 保持 ESM 和现有直接相对导入风格。仓库没有自动格式化器，编辑时遵循相邻文件的写法，不要顺手格式化无关代码。
 - 内容校验集中在 `parsePost`。新增或改变规则时，让错误消息包含 `sourcePath`，并在 `tests/post-parser.test.ts` 增加成功路径和失败路径测试。
 - 保持静态构建和单一内容源；没有明确需求时不要引入 CMS、服务端运行时、客户端数据请求或手工博文清单。
-- 保持现有哈希链接 `#/posts/<encoded-slug>` 可直接打开、前进/后退可同步、关闭阅读页会清除 hash。更换路由方案属于架构变更，需要同步考虑 GitHub Pages 的刷新回退。
+- 保持现有哈希链接 `#/posts/<encoded-slug>` 可直接打开，并让 `?post=<encoded-slug>` 在 Giscus OAuth 清除 hash 后继续恢复文章；前进/后退必须同步，关闭阅读页会同时清除文章与一次性 Giscus 查询参数。更换路由方案属于架构变更，需要同步考虑 GitHub Pages 的刷新回退。
 - 根路径资源必须考虑 `import.meta.env.BASE_URL` / `PAGES_BASE_PATH`，不能只在 `/` 下工作。
 - UI 继续使用 `src/index.css` 中的主题 token 和 Tailwind utility；优先复用 `paper`、`mist`、`ink`、`orbit-blue`、`line-dark` 等语义色，不散落近似硬编码色值。
 - 视觉保持 Bento 边界、1px 实线、暖纸色、大留白和克制的 Orbit Blue 状态色。不要增加内部卡片阴影、紫蓝渐变、弹跳动效或无意义视差。
