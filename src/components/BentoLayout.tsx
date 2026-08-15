@@ -8,9 +8,10 @@ import {
   persistLanguage,
   UI_COPY,
   type Language,
-  type UiCopy,
 } from '../lib/i18n';
 import {getPostBySlug, posts, type Post} from '../lib/posts';
+import {PostComments} from './PostComments';
+import {StableCopy, StableLocalizedText} from './StableCopy';
 
 function slugFromHash(): string | null {
   const match = window.location.hash.match(/^#\/posts\/([^/?#]+)$/);
@@ -38,7 +39,15 @@ function resolveMarkdownAsset(source: string | undefined): string | undefined {
   return `${import.meta.env.BASE_URL}${source.slice(1)}`;
 }
 
-function ReadingView({post, onClose, copy}: {post: Post; onClose: () => void; copy: UiCopy}) {
+function ReadingView({
+  post,
+  onClose,
+  language,
+}: {
+  post: Post;
+  onClose: () => void;
+  language: Language;
+}) {
   return (
     <motion.div
       key={post.slug}
@@ -55,10 +64,12 @@ function ReadingView({post, onClose, copy}: {post: Post; onClose: () => void; co
           className="group flex items-center gap-2 font-data text-label text-ink transition-colors hover:text-orbit-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
         >
           <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" />
-          <span>{copy.returnToArchive}</span>
+          <StableCopy language={language} copyKey="returnToArchive" />
         </button>
         <div className="hidden font-data text-label text-ink/40 sm:block">
-          {copy.readingMode} // {post.readingMinutes.toString().padStart(2, '0')} {copy.minuteUnit}
+          <StableCopy language={language} copyKey="readingMode" inline /> //{' '}
+          {post.readingMinutes.toString().padStart(2, '0')}{' '}
+          <StableCopy language={language} copyKey="minuteUnit" inline />
         </div>
       </div>
 
@@ -102,15 +113,17 @@ function ReadingView({post, onClose, copy}: {post: Post; onClose: () => void; co
           </div>
 
           <div className="mt-24 flex items-center justify-between border-t border-line-dark pt-8 font-data text-label text-ink/40">
-            <div>{copy.endOfPost}</div>
+            <StableCopy language={language} copyKey="endOfPost" />
             <button
               type="button"
               onClick={onClose}
               className="transition-colors hover:text-orbit-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
             >
-              [ {copy.close} ]
+              [ <StableCopy language={language} copyKey="close" inline /> ]
             </button>
           </div>
+
+          <PostComments language={language} slug={post.slug} />
         </article>
       </div>
     </motion.div>
@@ -179,7 +192,7 @@ export function BentoLayout() {
               <Diamond size={18} fill="currentColor" />
             </span>
             <span className="hidden font-data text-xs font-medium tracking-[0.2em] sm:block">
-              {copy.brandTitle}
+              <StableCopy language={language} copyKey="brandTitle" />
             </span>
           </button>
           <nav className="flex items-center gap-3 whitespace-nowrap font-data text-[0.65rem] tracking-[0.1em] sm:gap-8 sm:text-xs" aria-label={copy.primaryNavigation}>
@@ -188,14 +201,14 @@ export function BentoLayout() {
               onClick={closePost}
               className={`${!selectedPost ? 'border-b border-ink font-semibold' : 'hover:opacity-60'} pb-1 uppercase transition-opacity focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue`}
             >
-              {copy.journal}
+              <StableCopy language={language} copyKey="journal" />
             </button>
             <button
               type="button"
               onClick={showArchive}
               className="pb-1 uppercase transition-opacity hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
             >
-              {copy.archive}
+              <StableCopy language={language} copyKey="archive" />
             </button>
             <a
               href="https://github.com/asherzj"
@@ -203,7 +216,7 @@ export function BentoLayout() {
               rel="noreferrer"
               className="pb-1 uppercase transition-opacity hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
             >
-              {copy.connect}
+              <StableCopy language={language} copyKey="connect" />
             </a>
             <button
               type="button"
@@ -212,7 +225,7 @@ export function BentoLayout() {
               aria-label={copy.switchLanguage}
               title={copy.switchLanguage}
             >
-              {copy.languageButton}
+              <StableCopy language={language} copyKey="languageButton" />
             </button>
           </nav>
         </header>
@@ -220,7 +233,11 @@ export function BentoLayout() {
         <main className="relative flex flex-grow flex-col overflow-hidden bg-paper">
           <AnimatePresence mode="wait">
             {selectedPost ? (
-              <ReadingView post={selectedPost} onClose={closePost} copy={copy} />
+              <ReadingView
+                post={selectedPost}
+                onClose={closePost}
+                language={language}
+              />
             ) : (
               <motion.div
                 key="home"
@@ -232,15 +249,20 @@ export function BentoLayout() {
               >
                 <div className="flex w-full shrink-0 flex-col border-b border-line-dark lg:flex-row">
                   <div className="relative flex w-full flex-col border-b border-line-dark bg-dot-grid p-8 lg:w-[60%] lg:border-b-0 lg:border-r lg:p-12 xl:p-16">
-                    <div className="mb-auto text-label text-ink/50">{copy.conceptLabel}</div>
+                    <div className="mb-auto text-label text-ink/50">
+                      <StableCopy language={language} copyKey="conceptLabel" />
+                    </div>
 
                     <div className="mb-16 mt-12 lg:mt-24">
-                      <h1 className="break-keep font-display text-[3.5rem] font-bold leading-[0.9] tracking-tighter text-ink sm:text-[4.5rem] xl:text-[6rem]">
-                        {copy.heroLineOne}<br />
-                        {copy.heroLineTwo}
+                      <h1 className="break-keep font-display text-[clamp(1.75rem,8.8vw,3.5rem)] font-bold leading-[0.9] tracking-tighter text-ink sm:text-[3.75rem] lg:text-[clamp(3.75rem,5.8vw,6rem)]">
+                        <StableLocalizedText
+                          language={language}
+                          zh={<>{UI_COPY.zh.heroLineOne}<br />{UI_COPY.zh.heroLineTwo}</>}
+                          en={<>{UI_COPY.en.heroLineOne}<br />{UI_COPY.en.heroLineTwo}</>}
+                        />
                       </h1>
                       <p className="mt-8 max-w-[42ch] text-body text-ink/80">
-                        {copy.heroDescription}
+                        <StableCopy language={language} copyKey="heroDescription" />
                       </p>
                     </div>
 
@@ -250,17 +272,20 @@ export function BentoLayout() {
                         onClick={showArchive}
                         className="rounded-full bg-ink px-8 py-3 font-display text-sm font-medium text-paper transition-colors duration-300 hover:bg-orbit-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
                       >
-                        {copy.readArchive}
+                        <StableCopy language={language} copyKey="readArchive" />
                       </button>
                       <div className="hidden font-data text-label text-ink/40 sm:block">
-                        {copy.systemStatus}{latestDate ? ` // ${displayDate(latestDate)}` : ''}
+                        <StableCopy language={language} copyKey="systemStatus" inline />
+                        {latestDate ? ` // ${displayDate(latestDate)}` : ''}
                       </div>
                     </div>
                   </div>
 
                   <div className="flex w-full flex-col lg:w-[40%]">
                     <div className="relative flex min-h-[300px] flex-grow flex-col border-b border-line-dark bg-mist p-8">
-                      <div className="z-10 text-label text-ink/60">{copy.observeLabel}</div>
+                      <div className="z-10 text-label text-ink/60">
+                        <StableCopy language={language} copyKey="observeLabel" />
+                      </div>
                       <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
                         <svg viewBox="0 0 100 100" className="h-[80%] w-[80%] fill-none stroke-line-dark stroke-[0.3]" aria-hidden="true">
                           <line x1="50" y1="0" x2="50" y2="100" />
@@ -272,21 +297,33 @@ export function BentoLayout() {
                         </svg>
                       </div>
                       <div className="z-10 mt-auto text-right font-data text-[0.55rem] leading-relaxed tracking-widest text-ink/50">
-                        {copy.focusTopics}<br />
-                        {copy.writingMode}
+                        <StableCopy language={language} copyKey="focusTopics" />
+                        <StableCopy language={language} copyKey="writingMode" />
                       </div>
                     </div>
 
                     <div className="flex min-h-[200px] flex-col sm:flex-row">
                       <div className="relative flex w-full flex-col border-b border-line-dark bg-dot-grid p-6 sm:w-1/2 sm:border-b-0 sm:border-r xl:p-8">
-                        <div className="mb-6 text-label text-ink/50">{copy.connectLabel}</div>
-                        <h2 className="mb-2 font-display text-lg font-semibold leading-snug">{copy.connectTitle}</h2>
-                        <p className="text-sm leading-relaxed text-ink/70">{copy.connectDescription}</p>
+                        <div className="mb-6 text-label text-ink/50">
+                          <StableCopy language={language} copyKey="connectLabel" />
+                        </div>
+                        <h2 className="mb-2 font-display text-lg font-semibold leading-snug">
+                          <StableCopy language={language} copyKey="connectTitle" />
+                        </h2>
+                        <p className="text-sm leading-relaxed text-ink/70">
+                          <StableCopy language={language} copyKey="connectDescription" />
+                        </p>
                       </div>
                       <div className="relative flex w-full flex-col bg-dot-grid p-6 sm:w-1/2 xl:p-8">
-                        <div className="mb-6 text-label text-ink/50">{copy.buildLabel}</div>
-                        <h2 className="mb-2 font-display text-lg font-semibold leading-snug">{copy.buildTitle}</h2>
-                        <p className="text-sm leading-relaxed text-ink/70">{copy.buildDescription}</p>
+                        <div className="mb-6 text-label text-ink/50">
+                          <StableCopy language={language} copyKey="buildLabel" />
+                        </div>
+                        <h2 className="mb-2 font-display text-lg font-semibold leading-snug">
+                          <StableCopy language={language} copyKey="buildTitle" />
+                        </h2>
+                        <p className="text-sm leading-relaxed text-ink/70">
+                          <StableCopy language={language} copyKey="buildDescription" />
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -294,24 +331,33 @@ export function BentoLayout() {
 
                 <section className="flex flex-col border-b border-line-dark bg-paper" aria-labelledby="reading-title">
                   <div className="border-b border-line-dark bg-paper p-8">
-                    <h2 id="reading-title" className="text-label text-ink/50">{copy.thingsConsumeLabel}</h2>
+                    <h2 id="reading-title" className="text-label text-ink/50">
+                      <StableCopy language={language} copyKey="thingsConsumeLabel" />
+                    </h2>
                   </div>
                   <div className="flex flex-col bg-dot-grid p-8 md:flex-row md:items-start">
                     <div className="mb-6 w-full shrink-0 font-data text-label text-orbit-blue md:mb-0 md:w-1/4">
-                      {copy.readingPrinciple}
+                      <StableCopy language={language} copyKey="readingPrinciple" />
                     </div>
                     <div className="w-full md:w-2/4 md:pr-8">
-                      <h3 className="mb-3 font-display text-[1.5rem] font-semibold leading-snug">{copy.readingTitle}</h3>
-                      <p className="max-w-[58ch] text-body leading-relaxed text-ink/70">{copy.readingDescription}</p>
+                      <h3 className="mb-3 font-display text-[1.5rem] font-semibold leading-snug">
+                        <StableCopy language={language} copyKey="readingTitle" />
+                      </h3>
+                      <p className="max-w-[58ch] text-body leading-relaxed text-ink/70">
+                        <StableCopy language={language} copyKey="readingDescription" />
+                      </p>
                     </div>
                   </div>
                 </section>
 
                 <section id="archive" className="flex scroll-mt-4 flex-col bg-paper" aria-labelledby="archive-title">
                   <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line-dark bg-paper/95 p-8 backdrop-blur">
-                    <h2 id="archive-title" className="text-label text-ink/50">{copy.thingsWriteLabel}</h2>
+                    <h2 id="archive-title" className="text-label text-ink/50">
+                      <StableCopy language={language} copyKey="thingsWriteLabel" />
+                    </h2>
                     <div className="hidden font-data text-label text-ink/40 sm:block">
-                      {copy.total}: {posts.length.toString().padStart(3, '0')}
+                      <StableCopy language={language} copyKey="total" inline />:{' '}
+                      {posts.length.toString().padStart(3, '0')}
                     </div>
                   </div>
 
@@ -338,21 +384,28 @@ export function BentoLayout() {
                               <p className="line-clamp-2 text-body leading-relaxed text-ink/70">{post.excerpt}</p>
                             </div>
                             <div className="mt-6 flex w-full items-end justify-between font-data text-label text-ink/40 transition-colors duration-300 group-hover:text-orbit-blue md:mt-0 md:w-1/4 md:justify-end">
-                              <span className="md:hidden">{post.readingMinutes} {copy.minuteRead}</span>
-                              <span>[ {copy.readPost} ]</span>
+                              <span className="md:hidden">
+                                {post.readingMinutes}{' '}
+                                <StableCopy language={language} copyKey="minuteRead" inline />
+                              </span>
+                              <span>[ <StableCopy language={language} copyKey="readPost" inline /> ]</span>
                             </div>
                           </button>
                         </article>
                       ))
                     ) : (
-                      <p className="p-8 text-ink/60">{copy.noPosts}</p>
+                      <p className="p-8 text-ink/60">
+                        <StableCopy language={language} copyKey="noPosts" />
+                      </p>
                     )}
                   </div>
                 </section>
 
                 <section className="flex flex-col border-t border-line-dark bg-paper" aria-labelledby="builds-title">
                   <div className="border-b border-line-dark bg-paper p-8">
-                    <h2 id="builds-title" className="text-label text-ink/50">{copy.thingsBuildLabel}</h2>
+                    <h2 id="builds-title" className="text-label text-ink/50">
+                      <StableCopy language={language} copyKey="thingsBuildLabel" />
+                    </h2>
                   </div>
                   <a
                     href="https://github.com/asherzj/asherzj.github.io"
@@ -361,16 +414,18 @@ export function BentoLayout() {
                     className="group flex flex-col bg-dot-grid p-8 transition-colors duration-300 hover:bg-mist/30 focus-visible:bg-mist/30 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-orbit-blue md:flex-row"
                   >
                     <div className="mb-6 w-full shrink-0 font-data text-label text-orbit-blue md:mb-0 md:w-1/4">
-                      {copy.projectCategory}
+                      <StableCopy language={language} copyKey="projectCategory" />
                     </div>
                     <div className="w-full md:w-2/4 md:pr-8">
                       <h3 className="mb-3 font-display text-[1.5rem] transition-colors duration-300 group-hover:text-orbit-blue">
-                        {copy.projectTitle}
+                        <StableCopy language={language} copyKey="projectTitle" />
                       </h3>
-                      <p className="max-w-[58ch] text-body leading-relaxed text-ink/70">{copy.projectDescription}</p>
+                      <p className="max-w-[58ch] text-body leading-relaxed text-ink/70">
+                        <StableCopy language={language} copyKey="projectDescription" />
+                      </p>
                     </div>
                     <div className="mt-6 flex w-full items-center font-data text-label text-ink/40 transition-colors duration-300 group-hover:text-orbit-blue md:mt-0 md:w-1/4 md:justify-end">
-                      <span>[ {copy.viewProject} ]</span>
+                      <span>[ <StableCopy language={language} copyKey="viewProject" inline /> ]</span>
                       <ArrowUpRight className="ml-2" size={14} aria-hidden="true" />
                     </div>
                   </a>
@@ -383,13 +438,18 @@ export function BentoLayout() {
         <footer id="about" className="relative z-20 flex shrink-0 flex-col items-start justify-between gap-6 border-t border-line-dark bg-paper px-8 py-5 sm:flex-row sm:items-center">
           <div className="flex gap-12">
             <div>
-              <div className="mb-1 font-data text-[0.55rem] tracking-widest text-ink/50">{copy.archiveState}</div>
+              <div className="mb-1 font-data text-[0.55rem] tracking-widest text-ink/50">
+                <StableCopy language={language} copyKey="archiveState" />
+              </div>
               <div className="font-display text-sm font-semibold tracking-tight">
-                {posts.length.toString().padStart(3, '0')} {copy.postsIndexed}
+                {posts.length.toString().padStart(3, '0')}{' '}
+                <StableCopy language={language} copyKey="postsIndexed" inline />
               </div>
             </div>
             <div className="hidden sm:block">
-              <div className="mb-2 font-data text-[0.55rem] tracking-widest text-ink/50">{copy.signalStrength}</div>
+              <div className="mb-2 font-data text-[0.55rem] tracking-widest text-ink/50">
+                <StableCopy language={language} copyKey="signalStrength" />
+              </div>
               <div className="flex h-3 items-end gap-1" aria-hidden="true">
                 <div className="h-[40%] w-4 rounded-sm bg-orbit-blue" />
                 <div className="h-[70%] w-4 rounded-sm bg-orbit-blue" />
@@ -410,7 +470,9 @@ export function BentoLayout() {
           </a>
 
           <div className="flex items-center gap-4">
-            <div className="hidden font-data text-[0.65rem] font-medium tracking-widest sm:block">{copy.builtFromMarkdown}</div>
+            <div className="hidden font-data text-[0.65rem] font-medium tracking-widest sm:block">
+              <StableCopy language={language} copyKey="builtFromMarkdown" />
+            </div>
             <div className="h-px w-8 bg-ink sm:w-12" />
           </div>
         </footer>

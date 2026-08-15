@@ -80,6 +80,12 @@ git push -u origin main
 
 工作流通过 GitHub Pages 返回的部署路径自动区分用户站点和项目站点，不需要手工修改 Vite 的 `base`。
 
+## 博文留言
+
+阅读页使用 giscus 连接仓库中的 GitHub Discussions。访客通过 GitHub 身份留言，评论公开保存在 `Comments` 分类中，站点本身不保存账户、令牌或评论数据。
+
+每篇博文以 `post:<slug>` 作为稳定的 Discussion 映射键。重命名 `posts/` 中的文件会同时改变公开链接和评论映射；若确实需要改名，应一并迁移对应 Discussion 的标题。
+
 ## 内容管线
 
 ```text
