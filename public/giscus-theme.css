@@ -1,0 +1,323 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap");
+
+main {
+  color-scheme: light;
+
+  --color-prettylights-syntax-comment: #72736e;
+  --color-prettylights-syntax-constant: #3568ff;
+  --color-prettylights-syntax-entity: #553fb8;
+  --color-prettylights-syntax-storage-modifier-import: #0b0d10;
+  --color-prettylights-syntax-entity-tag: #397653;
+  --color-prettylights-syntax-keyword: #b43a2a;
+  --color-prettylights-syntax-string: #3158bb;
+  --color-prettylights-syntax-variable: #9a551d;
+  --color-prettylights-syntax-brackethighlighter-unmatched: #b42318;
+  --color-prettylights-syntax-invalid-illegal-text: #f3f0e8;
+  --color-prettylights-syntax-invalid-illegal-bg: #b42318;
+  --color-prettylights-syntax-carriage-return-text: #f3f0e8;
+  --color-prettylights-syntax-carriage-return-bg: #b42318;
+  --color-prettylights-syntax-string-regexp: #397653;
+  --color-prettylights-syntax-markup-list: #745b17;
+  --color-prettylights-syntax-markup-heading: #3158bb;
+  --color-prettylights-syntax-markup-italic: #565751;
+  --color-prettylights-syntax-markup-bold: #0b0d10;
+  --color-prettylights-syntax-markup-deleted-text: #8a1f14;
+  --color-prettylights-syntax-markup-deleted-bg: #ffe3de;
+  --color-prettylights-syntax-markup-inserted-text: #255c3c;
+  --color-prettylights-syntax-markup-inserted-bg: #dceee3;
+  --color-prettylights-syntax-markup-changed-text: #784313;
+  --color-prettylights-syntax-markup-changed-bg: #ffedcf;
+  --color-prettylights-syntax-markup-ignored-text: #565751;
+  --color-prettylights-syntax-markup-ignored-bg: #d9d9d2;
+  --color-prettylights-syntax-meta-diff-range: #553fb8;
+  --color-prettylights-syntax-brackethighlighter-angle: #72736e;
+  --color-prettylights-syntax-sublimelinter-gutter-mark: #96978f;
+  --color-prettylights-syntax-constant-other-reference-link: #3158bb;
+
+  --color-btn-text: #0b0d10;
+  --color-btn-bg: #f3f0e8;
+  --color-btn-border: rgba(11, 13, 16, 0.24);
+  --color-btn-shadow: 0 0 transparent;
+  --color-btn-inset-shadow: 0 0 transparent;
+  --color-btn-hover-bg: #d9d9d2;
+  --color-btn-hover-border: #3568ff;
+  --color-btn-active-bg: #cecfc7;
+  --color-btn-active-border: #3568ff;
+  --color-btn-selected-bg: #d9d9d2;
+  --color-btn-primary-text: #f3f0e8;
+  --color-btn-primary-bg: #0b0d10;
+  --color-btn-primary-border: #0b0d10;
+  --color-btn-primary-shadow: 0 0 transparent;
+  --color-btn-primary-inset-shadow: 0 0 transparent;
+  --color-btn-primary-hover-bg: #3568ff;
+  --color-btn-primary-hover-border: #3568ff;
+  --color-btn-primary-selected-bg: #214bd1;
+  --color-btn-primary-selected-shadow: 0 0 transparent;
+  --color-btn-primary-disabled-text: rgba(243, 240, 232, 0.72);
+  --color-btn-primary-disabled-bg: rgba(11, 13, 16, 0.48);
+  --color-btn-primary-disabled-border: transparent;
+  --color-action-list-item-default-hover-bg: rgba(53, 104, 255, 0.08);
+  --color-segmented-control-bg: rgba(217, 217, 210, 0.7);
+  --color-segmented-control-button-bg: #f3f0e8;
+  --color-segmented-control-button-selected-border: rgba(11, 13, 16, 0.24);
+
+  --color-fg-default: #0b0d10;
+  --color-fg-muted: #666761;
+  --color-fg-subtle: #898a84;
+  --color-canvas-default: #f3f0e8;
+  --color-canvas-overlay: #f3f0e8;
+  --color-canvas-inset: rgba(217, 217, 210, 0.42);
+  --color-canvas-subtle: rgba(217, 217, 210, 0.58);
+  --color-border-default: rgba(11, 13, 16, 0.24);
+  --color-border-muted: rgba(11, 13, 16, 0.14);
+  --color-neutral-muted: rgba(11, 13, 16, 0.08);
+  --color-accent-fg: #3568ff;
+  --color-accent-emphasis: #3568ff;
+  --color-accent-muted: rgba(53, 104, 255, 0.35);
+  --color-accent-subtle: rgba(53, 104, 255, 0.08);
+  --color-success-fg: #3568ff;
+  --color-attention-fg: #9a6a10;
+  --color-attention-muted: rgba(154, 106, 16, 0.35);
+  --color-attention-subtle: rgba(154, 106, 16, 0.1);
+  --color-danger-fg: #b42318;
+  --color-danger-muted: rgba(180, 35, 24, 0.35);
+  --color-danger-subtle: rgba(180, 35, 24, 0.08);
+  --color-primer-shadow-inset: 0 0 transparent;
+  --color-scale-gray-7: #d9d9d2;
+  --color-scale-blue-8: rgba(53, 104, 255, 0.14);
+  --color-social-reaction-bg-hover: rgba(53, 104, 255, 0.08);
+  --color-social-reaction-bg-reacted-hover: rgba(53, 104, 255, 0.16);
+
+  background: #f3f0e8;
+  color: #0b0d10;
+  font-family: "Inter", "PingFang SC", "Noto Sans SC", sans-serif;
+}
+
+body {
+  background: #f3f0e8;
+}
+
+main a {
+  text-decoration-color: rgba(53, 104, 255, 0.5);
+  text-underline-offset: 0.18em;
+}
+
+main a:hover {
+  color: #3568ff;
+}
+
+.gsc-main {
+  gap: 1.25rem;
+}
+
+.gsc-reactions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  min-height: 0;
+  margin: 0;
+  padding: 0 0 1rem;
+  border-bottom: 1px solid rgba(11, 13, 16, 0.18);
+}
+
+.gsc-reactions-count,
+.gsc-comments-count,
+.gsc-replies-count,
+.gsc-comments-count-separator,
+.gsc-header em,
+.gsc-right-header .btn {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gsc-reactions > .flex {
+  justify-content: flex-end;
+  margin-top: 0;
+}
+
+.gsc-comments {
+  gap: 1rem;
+}
+
+.gsc-header {
+  align-items: center;
+  padding: 0;
+}
+
+.gsc-left-header {
+  align-items: baseline;
+}
+
+.gsc-comment-box {
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  border: 1px solid rgba(11, 13, 16, 0.24);
+  border-radius: 0;
+  background: #f3f0e8;
+  box-shadow: none;
+}
+
+.gsc-comment-box-tabs {
+  border-bottom: 1px solid rgba(11, 13, 16, 0.18);
+  background: rgba(217, 217, 210, 0.46);
+}
+
+.gsc-comment-box-tabs button {
+  border-radius: 0;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.gsc-comment-box-main,
+.gsc-comment-box-bottom {
+  background: #f3f0e8;
+}
+
+.gsc-comment-box-write {
+  padding: 0.75rem;
+}
+
+.gsc-comment-box-textarea {
+  min-height: 9rem;
+  border: 1px solid rgba(11, 13, 16, 0.18);
+  border-radius: 0.25rem 0.25rem 0 0;
+  background: rgba(217, 217, 210, 0.32);
+  box-shadow: none;
+  color: #0b0d10;
+  font-family: "Inter", "PingFang SC", "Noto Sans SC", sans-serif;
+  line-height: 1.65;
+}
+
+.gsc-comment-box-textarea-extras {
+  border: 1px solid rgba(11, 13, 16, 0.18);
+  border-top: 0;
+  border-radius: 0 0 0.25rem 0.25rem;
+  background: rgba(217, 217, 210, 0.32);
+  box-shadow: none;
+}
+
+.gsc-comment-box-textarea:focus {
+  border-color: #3568ff;
+  box-shadow: 0 0 0 1px #3568ff;
+}
+
+.gsc-comment-box-bottom {
+  padding: 0.75rem;
+  border-top: 1px solid rgba(11, 13, 16, 0.18);
+}
+
+.btn {
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  font-family: "Inter", "PingFang SC", "Noto Sans SC", sans-serif;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.BtnGroup .btn {
+  border-radius: 0 !important;
+}
+
+.BtnGroup-item:first-child .btn {
+  border-radius: 0.25rem 0 0 0.25rem !important;
+}
+
+.BtnGroup-item:last-child .btn {
+  border-radius: 0 0.25rem 0.25rem 0 !important;
+}
+
+.gsc-social-reaction-summary-item {
+  border: 1px solid rgba(11, 13, 16, 0.22);
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.gsc-social-reaction-summary-item:hover,
+.gsc-social-reaction-summary-item.has-reacted {
+  border-color: #3568ff;
+  background: rgba(53, 104, 255, 0.08);
+  color: #3568ff;
+}
+
+.gsc-timeline {
+  gap: 1rem;
+}
+
+.gsc-comment > div {
+  overflow: hidden;
+  border-color: rgba(11, 13, 16, 0.24) !important;
+  border-radius: 0 !important;
+  background: #f3f0e8 !important;
+  box-shadow: none;
+}
+
+.gsc-comment-header {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(11, 13, 16, 0.18);
+  background: rgba(217, 217, 210, 0.38);
+}
+
+.gsc-comment-author,
+.gsc-comment-footer {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.72rem;
+}
+
+.gsc-comment-content {
+  padding: 1.25rem 1rem;
+  font-family: "Inter", "PingFang SC", "Noto Sans SC", sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.gsc-comment-footer {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid rgba(11, 13, 16, 0.14);
+}
+
+.gsc-replies,
+.gsc-reply-box {
+  border-radius: 0 !important;
+  background: rgba(217, 217, 210, 0.3) !important;
+}
+
+.gsc-reply-box button {
+  border-radius: 0.25rem;
+  box-shadow: none;
+}
+
+.gsc-pagination-button {
+  border-color: rgba(11, 13, 16, 0.24);
+  border-radius: 0;
+  background: #f3f0e8;
+}
+
+@media (max-width: 480px) {
+  .gsc-reactions {
+    grid-template-columns: 1fr;
+  }
+
+  .gsc-reactions > .flex {
+    justify-content: flex-start;
+  }
+
+  .gsc-header {
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
