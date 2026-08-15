@@ -4,7 +4,7 @@
 
 ## 项目定位
 
-Personal Archive 是一个纯静态个人博客：`posts/*.md` 是唯一内容源，Vite 在构建时校验并导入博文，React 负责档案首页和阅读视图，GitHub Actions 将 `dist/` 部署到 GitHub Pages。
+Personal Archive 是一个纯静态个人博客：`posts/*.md` 与 `consumes/*.md` 分别提供博文和输入记录，Vite 在构建时校验并导入内容，React 负责档案首页和阅读视图，GitHub Actions 将 `dist/` 部署到 GitHub Pages。
 
 开始修改前先按任务范围阅读：
 
@@ -47,11 +47,11 @@ PAGES_BASE_PATH=/personal_blog npm run build
 
 1. `src/main.tsx` 挂载 React。
 2. `src/App.tsx` 只渲染 `src/components/BentoLayout.tsx`。
-3. `src/lib/posts.ts` 通过 eager `import.meta.glob('/posts/*.md', {query: '?raw'})` 导入所有 Markdown，并在模块加载时解析、去重、排除草稿和排序。
-4. `src/lib/post-parser.ts` 负责 slug、frontmatter、日期、正文和阅读时长校验。
+3. `src/lib/posts.ts` 与 `src/lib/consumptions.ts` 分别通过 eager `import.meta.glob` 导入博文和输入条目，并在模块加载时解析、去重、排除草稿和排序。
+4. `src/lib/content-parser.ts` 集中校验两类内容共享的 slug、frontmatter、日期和标签；`post-parser.ts`、`consumption-parser.ts` 只补充各自字段。
 5. `src/lib/i18n.ts` 定义中英文界面词典，并通过 `localStorage` 保存页面组件语言；博文内容不自动翻译。
 6. `src/lib/post-route.ts` 负责文章 URL、OAuth 回跳恢复和临时会话中的文章 slug；查询参数是 Giscus 登录回跳的稳定路由，`#/posts/<slug>` 继续作为兼容链接。
-7. `BentoLayout.tsx` 同时实现首页、档案列表、阅读视图和语言切换；项目没有 React Router。
+7. `src/lib/tags.ts` 为两类内容生成标签计数和筛选结果；`BentoLayout.tsx` 同时实现首页、两套独立标签筛选、档案列表、阅读视图和语言切换；项目没有 React Router。
 8. `src/index.css` 定义 Tailwind v4 主题 token、排版、Markdown 正文样式和 reduced-motion 降级。
 
 `Articles.tsx`、`Connect.tsx`、`Header.tsx`、`Hero.tsx`、`Invite.tsx`、`Observe.tsx` 当前均未被运行时入口导入，属于遗留/候选展示组件。不要误以为修改它们会改变线上页面；复用或删除前先重新检查引用。
@@ -59,11 +59,11 @@ PAGES_BASE_PATH=/personal_blog npm run build
 内容管线是：
 
 ```text
-posts/*.md
-  -> parsePost 构建期校验
-  -> 去除 draft: true
+posts/*.md + consumes/*.md
+  -> parsePost / parseConsumption 构建期校验
+  -> 各自去除 draft: true
   -> 按 ISO date 从新到旧排序
-  -> 首页档案与阅读视图
+  -> 首页输入、档案与标签筛选
   -> Vite dist/
   -> GitHub Pages
 ```
@@ -78,6 +78,9 @@ title: "博文标题"
 date: "2026-08-16"
 category: "SYSTEMS"
 excerpt: "显示在档案列表中的简短摘要。"
+tags:
+  - SYSTEMS
+  - WRITING
 draft: false
 ---
 
@@ -87,6 +90,7 @@ draft: false
 必须满足：
 
 - `title`、`date`、`category`、`excerpt` 是非空字符串。
+- `tags` 是至少包含一个非空字符串的 YAML 数组；同一内容中的重复标签会按大小写不敏感去重并保留首次展示形式。
 - `date` 是真实存在的 `YYYY-MM-DD` 日期；这个值同时决定排序。
 - `draft` 若存在必须是 YAML 布尔值，不能写成字符串。解析器允许省略并默认 `false`，但新博文应显式填写以表达发布意图。
 - 正文不能为空；支持 GitHub Flavored Markdown。
@@ -96,11 +100,15 @@ draft: false
 
 草稿留在仓库中但不会出现在 `posts` 导出的公开集合里，因此 `getPostBySlug` 也不会返回草稿。阅读时长是解析器基于中日韩字符和英文 token、按每分钟 300 个单位估算的展示值。
 
+## 输入条目约定
+
+`consumes/*.md` 是「我的输入」的唯一内容源。文件名同样使用小写 kebab-case；frontmatter 必须包含 `title`、`date`、`source`、`excerpt`、`tags` 和显式布尔值 `draft`，可选 `url` 只接受 `http` / `https`。正文允许为空。输入条目和博文是两个独立集合：标签可以同名，但筛选状态和结果互不影响。
+
 ## 代码与设计约定
 
 - 保持 TypeScript strict；避免 `any`、非必要断言和重复的 `Post` 形状，公共内容类型从 `src/lib/posts.ts` / `post-parser.ts` 导入。
 - 保持 ESM 和现有直接相对导入风格。仓库没有自动格式化器，编辑时遵循相邻文件的写法，不要顺手格式化无关代码。
-- 内容校验集中在 `parsePost`。新增或改变规则时，让错误消息包含 `sourcePath`，并在 `tests/post-parser.test.ts` 增加成功路径和失败路径测试。
+- 共享内容校验集中在 `parseTaggedMarkdown`。新增或改变规则时，让错误消息包含 `sourcePath`，并在对应 parser 测试中增加成功路径和失败路径。
 - 保持静态构建和单一内容源；没有明确需求时不要引入 CMS、服务端运行时、客户端数据请求或手工博文清单。
 - 保持现有哈希链接 `#/posts/<encoded-slug>` 可直接打开，并让 `?post=<encoded-slug>` 在 Giscus OAuth 清除 hash 后继续恢复文章；前进/后退必须同步，关闭阅读页会同时清除文章与一次性 Giscus 查询参数。更换路由方案属于架构变更，需要同步考虑 GitHub Pages 的刷新回退。
 - 根路径资源必须考虑 `import.meta.env.BASE_URL` / `PAGES_BASE_PATH`，不能只在 `/` 下工作。
@@ -113,7 +121,7 @@ draft: false
 ## 按改动类型验证
 
 - 只改文档：至少运行 `git diff --check` 并核对命令、路径和链接。
-- 新增或修改博文：运行 `npm test` 和 `npm run build`；确认草稿不会公开、日期排序正确、Markdown 可渲染。
+- 新增或修改博文/输入条目：运行 `npm test` 和 `npm run build`；确认草稿不会公开、日期排序与标签筛选正确、Markdown 可解析。
 - 修改解析器或内容模型：先补 `tests/post-parser.test.ts`，再运行 `npm run check`。
 - 修改 UI、导航或样式：运行 `npm run check`，并手动检查首页与阅读视图、直接 hash 打开、返回档案、移动端和桌面端。
 - 修改部署、Vite base 或资源处理：运行普通构建和带 `PAGES_BASE_PATH=/personal_blog` 的构建，并对照 `.github/workflows/deploy-pages.yml`。

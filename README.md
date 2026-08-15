@@ -1,6 +1,6 @@
 # Personal Archive
 
-一个以 Markdown 为内容源、由 GitHub Actions 自动构建并发布到 GitHub Pages 的个人博客。现有的 Frontier Optimism × Bento 视觉语言被保留，首页和阅读页的数据已经全部来自 `posts/`。
+一个以 Markdown 为内容源、由 GitHub Actions 自动构建并发布到 GitHub Pages 的个人博客。现有的 Frontier Optimism × Bento 视觉语言被保留，博文来自 `posts/`，输入记录来自 `consumes/`。
 
 ## 写一篇新博文
 
@@ -18,6 +18,9 @@ title: "系统与反馈"
 date: "2026-08-16"
 category: "SYSTEMS"
 excerpt: "这段摘要会显示在首页。"
+tags:
+  - 系统思考
+  - 决策
 draft: false
 ---
 
@@ -27,12 +30,42 @@ draft: false
 规则：
 
 - `title`、`date`、`category`、`excerpt` 都是必填字符串。
+- `tags` 是至少包含一个非空标签的 YAML 数组；标签用于首页筛选，可以同时属于多个标签。
 - `date` 必须是有效的 `YYYY-MM-DD`；档案按这个日期从新到旧排列。
 - `draft` 必须是布尔值。设为 `true` 时不会出现在公开站点。
 - 文件名必须是小写 kebab-case；不改文件名就不会改变博文链接。
 - 文中引用站点图片时，将图片放进 `public/images/`，写成 `![说明](/images/example.png)`。
 
 提交并推送到 `main` 后，工作流会自动校验、构建和部署，不需要维护单独的文章列表。
+
+## 记录一条输入
+
+书、文章、视频、播客或资料放在 `consumes/`，同样使用 Markdown。文件名是稳定 slug，例如：
+
+```text
+consumes/feedback-systems.md
+```
+
+```md
+---
+title: "资料标题"
+date: "2026-08-16"
+source: "ESSAY / EXAMPLE.COM"
+url: "https://example.com/source"
+excerpt: "它具体改变了什么问题、判断或行动。"
+tags:
+  - 系统思考
+  - 反馈
+draft: false
+---
+```
+
+- `title`、`date`、`source`、`excerpt`、`tags` 必填。
+- `url` 可省略；填写时只接受 `http` 或 `https` 地址。
+- `draft: true` 的输入条目不会公开。
+- 正文可省略。首页会展示标题、来源、摘要和标签；有 `url` 时标题区域会链接到原始来源。
+
+「我的输入」和「我的写作」各自生成标签筛选器。点击条目上的 `#标签` 或分区顶部的标签，可以只查看该分区中同标签的全部内容。
 
 ## 本地开发
 
@@ -89,10 +122,11 @@ git push -u origin main
 ## 内容管线
 
 ```text
-posts/*.md
-  → frontmatter 与文件名校验
-  → 排除 draft: true
-  → 按 date 倒序生成档案
+posts/*.md + consumes/*.md
+  → frontmatter、标签与文件名校验
+  → 各自排除 draft: true
+  → 按 date 倒序生成输入与博文集合
+  → 按标签筛选各自集合
   → Vite 构建 dist/
   → GitHub Pages 部署
 ```

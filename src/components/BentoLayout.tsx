@@ -16,9 +16,12 @@ import {
   getPostSlug,
   persistPendingPostSlug,
 } from '../lib/post-route';
+import {consumptions} from '../lib/consumptions';
 import {getPostBySlug, posts, type Post} from '../lib/posts';
+import {filterByTag, getTagSummaries} from '../lib/tags';
 import {PostComments} from './PostComments';
 import {StableCopy, StableLocalizedText} from './StableCopy';
+import {TagChipList, TagFilter} from './TagFilter';
 
 function displayDate(date: string): string {
   return date.replaceAll('-', '.');
@@ -146,11 +149,20 @@ function ReadingView({
 export function BentoLayout() {
   const [activeSlug, setActiveSlug] = useState<string | null>(() => syncPostLocation());
   const [language, setLanguage] = useState<Language>(() => getInitialLanguage());
+  const [consumeTag, setConsumeTag] = useState<string | null>(null);
+  const [writeTag, setWriteTag] = useState<string | null>(null);
   const copy = UI_COPY[language];
   const selectedPost = useMemo(
     () => (activeSlug ? getPostBySlug(activeSlug) : undefined),
     [activeSlug],
   );
+  const consumptionTags = useMemo(() => getTagSummaries(consumptions), []);
+  const postTags = useMemo(() => getTagSummaries(posts), []);
+  const filteredConsumptions = useMemo(
+    () => filterByTag(consumptions, consumeTag),
+    [consumeTag],
+  );
+  const filteredPosts = useMemo(() => filterByTag(posts, writeTag), [writeTag]);
   const latestDate = posts[0]?.date;
 
   useEffect(() => {
@@ -350,13 +362,17 @@ export function BentoLayout() {
                   </div>
                 </div>
 
-                <section className="flex flex-col border-b border-line-dark bg-paper" aria-labelledby="reading-title">
-                  <div className="border-b border-line-dark bg-paper p-8">
+                <section id="consume" className="flex flex-col border-b border-line-dark bg-paper" aria-labelledby="reading-title">
+                  <div className="flex items-center justify-between border-b border-line-dark bg-paper p-8">
                     <h2 id="reading-title" className="text-label text-ink/50">
                       <StableCopy language={language} copyKey="thingsConsumeLabel" />
                     </h2>
+                    <div className="hidden font-data text-label text-ink/40 sm:block">
+                      <StableCopy language={language} copyKey="total" inline />:{' '}
+                      {consumptions.length.toString().padStart(3, '0')}
+                    </div>
                   </div>
-                  <div className="flex flex-col bg-dot-grid p-8 md:flex-row md:items-start">
+                  <div className="flex flex-col border-b border-line-dark bg-dot-grid p-8 md:flex-row md:items-start">
                     <div className="mb-6 w-full shrink-0 font-data text-label text-orbit-blue md:mb-0 md:w-1/4">
                       <StableCopy language={language} copyKey="readingPrinciple" />
                     </div>
@@ -369,6 +385,74 @@ export function BentoLayout() {
                       </p>
                     </div>
                   </div>
+
+                  <TagFilter
+                    allLabel={copy.allTags}
+                    ariaLabel={`${copy.filterByTag}: ${copy.thingsConsumeLabel}`}
+                    label={copy.filterByTag}
+                    onSelect={setConsumeTag}
+                    selectedTag={consumeTag}
+                    tags={consumptionTags}
+                  />
+
+                  <div className="flex flex-col">
+                    {filteredConsumptions.length > 0 ? (
+                      filteredConsumptions.map((consumption) => (
+                        <article key={consumption.slug} className="border-b border-line-dark last:border-b-0">
+                          <div className="group flex flex-col p-8 transition-colors duration-300 hover:bg-mist/30 md:flex-row">
+                            <div className="mb-6 w-full shrink-0 md:mb-0 md:w-1/4 md:pr-8">
+                              <time dateTime={consumption.date} className="font-data text-label text-ink/50">
+                                {displayDate(consumption.date)}
+                              </time>
+                              <div className="mt-1 font-data text-label text-orbit-blue">
+                                {consumption.source}
+                              </div>
+                              <TagChipList
+                                ariaLabel={`${copy.filterByTag}: ${consumption.title}`}
+                                onSelect={setConsumeTag}
+                                selectedTag={consumeTag}
+                                tags={consumption.tags}
+                              />
+                            </div>
+
+                            {consumption.url ? (
+                              <a
+                                href={consumption.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex w-full flex-col text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue md:w-3/4 md:flex-row"
+                              >
+                                <div className="w-full md:w-2/3 md:pr-8">
+                                  <h3 className="mb-3 font-display text-[1.5rem] transition-colors duration-300 group-hover:text-orbit-blue">
+                                    {consumption.title}
+                                  </h3>
+                                  <p className="text-body leading-relaxed text-ink/70">
+                                    {consumption.excerpt}
+                                  </p>
+                                </div>
+                                <div className="mt-6 flex w-full items-center font-data text-label text-ink/40 transition-colors duration-300 group-hover:text-orbit-blue md:mt-0 md:w-1/3 md:justify-end">
+                                  <span>[ <StableCopy language={language} copyKey="viewSource" inline /> ]</span>
+                                  <ArrowUpRight className="ml-2" size={14} aria-hidden="true" />
+                                </div>
+                              </a>
+                            ) : (
+                              <div className="w-full md:w-2/4 md:pr-8">
+                                <h3 className="mb-3 font-display text-[1.5rem]">{consumption.title}</h3>
+                                <p className="text-body leading-relaxed text-ink/70">{consumption.excerpt}</p>
+                              </div>
+                            )}
+                          </div>
+                        </article>
+                      ))
+                    ) : (
+                      <p className="p-8 text-ink/60">
+                        <StableCopy
+                          language={language}
+                          copyKey={consumeTag ? 'noConsumptionsForTag' : 'noConsumptions'}
+                        />
+                      </p>
+                    )}
+                  </div>
                 </section>
 
                 <section id="archive" className="flex scroll-mt-4 flex-col bg-paper" aria-labelledby="archive-title">
@@ -378,45 +462,63 @@ export function BentoLayout() {
                     </h2>
                     <div className="hidden font-data text-label text-ink/40 sm:block">
                       <StableCopy language={language} copyKey="total" inline />:{' '}
-                      {posts.length.toString().padStart(3, '0')}
+                      {filteredPosts.length.toString().padStart(3, '0')}
+                      {writeTag ? ` / ${posts.length.toString().padStart(3, '0')}` : ''}
                     </div>
                   </div>
 
+                  <TagFilter
+                    allLabel={copy.allTags}
+                    ariaLabel={`${copy.filterByTag}: ${copy.thingsWriteLabel}`}
+                    label={copy.filterByTag}
+                    onSelect={setWriteTag}
+                    selectedTag={writeTag}
+                    tags={postTags}
+                  />
+
                   <div className="flex flex-col">
-                    {posts.length > 0 ? (
-                      posts.map((post) => (
+                    {filteredPosts.length > 0 ? (
+                      filteredPosts.map((post) => (
                         <article key={post.slug} className="border-b border-line-dark last:border-b-0">
-                          <button
-                            type="button"
-                            onClick={() => openPost(post.slug)}
-                            className="group flex w-full cursor-pointer flex-col p-8 text-left transition-colors duration-300 hover:bg-mist/30 focus-visible:bg-mist/30 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-orbit-blue md:flex-row"
-                            aria-label={`${copy.readPostAria}: ${post.title}`}
-                          >
-                            <div className="mb-4 w-full shrink-0 md:mb-0 md:w-1/4">
+                          <div className="group flex w-full flex-col p-8 text-left transition-colors duration-300 hover:bg-mist/30 md:flex-row">
+                            <div className="mb-6 w-full shrink-0 md:mb-0 md:w-1/4 md:pr-8">
                               <time dateTime={post.date} className="font-data text-label text-ink/50">
                                 {displayDate(post.date)}
                               </time>
                               <div className="mt-1 font-data text-label text-orbit-blue">{post.category}</div>
+                              <TagChipList
+                                ariaLabel={`${copy.filterByTag}: ${post.title}`}
+                                onSelect={setWriteTag}
+                                selectedTag={writeTag}
+                                tags={post.tags}
+                              />
                             </div>
-                            <div className="w-full pr-0 md:w-2/4 md:pr-8">
-                              <h3 className="mb-3 font-display text-[1.5rem] transition-colors duration-300 group-hover:text-orbit-blue">
-                                {post.title}
-                              </h3>
-                              <p className="line-clamp-2 text-body leading-relaxed text-ink/70">{post.excerpt}</p>
-                            </div>
-                            <div className="mt-6 flex w-full items-end justify-between font-data text-label text-ink/40 transition-colors duration-300 group-hover:text-orbit-blue md:mt-0 md:w-1/4 md:justify-end">
-                              <span className="md:hidden">
-                                {post.readingMinutes}{' '}
-                                <StableCopy language={language} copyKey="minuteRead" inline />
-                              </span>
-                              <span>[ <StableCopy language={language} copyKey="readPost" inline /> ]</span>
-                            </div>
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => openPost(post.slug)}
+                              className="flex w-full cursor-pointer flex-col text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue md:w-3/4 md:flex-row"
+                              aria-label={`${copy.readPostAria}: ${post.title}`}
+                            >
+                              <div className="w-full md:w-2/3 md:pr-8">
+                                <h3 className="mb-3 font-display text-[1.5rem] transition-colors duration-300 group-hover:text-orbit-blue">
+                                  {post.title}
+                                </h3>
+                                <p className="line-clamp-2 text-body leading-relaxed text-ink/70">{post.excerpt}</p>
+                              </div>
+                              <div className="mt-6 flex w-full items-end justify-between font-data text-label text-ink/40 transition-colors duration-300 group-hover:text-orbit-blue md:mt-0 md:w-1/3 md:justify-end">
+                                <span className="md:hidden">
+                                  {post.readingMinutes}{' '}
+                                  <StableCopy language={language} copyKey="minuteRead" inline />
+                                </span>
+                                <span>[ <StableCopy language={language} copyKey="readPost" inline /> ]</span>
+                              </div>
+                            </button>
+                          </div>
                         </article>
                       ))
                     ) : (
                       <p className="p-8 text-ink/60">
-                        <StableCopy language={language} copyKey="noPosts" />
+                        <StableCopy language={language} copyKey={writeTag ? 'noPostsForTag' : 'noPosts'} />
                       </p>
                     )}
                   </div>

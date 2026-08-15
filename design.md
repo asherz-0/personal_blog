@@ -52,8 +52,10 @@
 ## 6. 博客功能映射 (Blog Function Mapping)
 
 - **主页愿景** -> Bento Hero 区域，传达个人/站点的核心价值观。
-- **文章分类** -> `IBM Plex Mono` 标签（如 ESSAY, ENGINEERING）。
-- **文章列表** -> `04 // JOURNAL ARCHIVE` 模块，紧跟在 Hero 下方，采用简洁的横向列表排版，不使用卡片，仅用细线（border-bottom）分隔。
+- **内容标签** -> `IBM Plex Mono` 胶囊按钮；使用 Orbit Blue 标识当前筛选，输入与写作各自维护独立筛选状态。
+- **输入记录** -> `04 // THINGS I CONSUME` 模块，展示书、文章、视频等输入来源。
+- **文章列表** -> `05 // THINGS I WRITE` 模块，采用简洁的横向列表排版，不使用卡片，仅用细线（border-bottom）分隔。
+- **项目实践** -> `06 // THINGS I BUILD` 模块，记录作品与可验证的实践。
 - **阅读页** -> 独立的视图组件，隐藏无关干扰，保留元数据（日期、分类）在标题旁作为锚点。
 
 ## 7. 避坑指南 (Anti-patterns)
