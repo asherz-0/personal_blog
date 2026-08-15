@@ -46,6 +46,11 @@
     overflow-x: hidden;
   }
 
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     font-weight: 600;
@@ -56,6 +61,132 @@
   p {
     max-width: 62ch;
     line-height: 1.6;
+  }
+}
+
+@layer components {
+  .article-content {
+    font-size: 1.05rem;
+    line-height: 1.85;
+    overflow-wrap: anywhere;
+  }
+
+  .article-content > * + * {
+    margin-top: 1.5rem;
+  }
+
+  .article-content h2,
+  .article-content h3,
+  .article-content h4 {
+    margin-top: 3.5rem;
+    color: var(--color-ink);
+    scroll-margin-top: 6rem;
+  }
+
+  .article-content h2 {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-line-dark);
+    font-size: clamp(1.6rem, 3vw, 2.25rem);
+  }
+
+  .article-content h3 {
+    font-size: clamp(1.25rem, 2.5vw, 1.65rem);
+  }
+
+  .article-content p {
+    max-width: none;
+  }
+
+  .article-content a {
+    color: var(--color-orbit-blue);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .article-content a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .article-content ul,
+  .article-content ol {
+    padding-left: 1.5rem;
+  }
+
+  .article-content ul {
+    list-style: square;
+  }
+
+  .article-content ol {
+    list-style: decimal;
+  }
+
+  .article-content li + li {
+    margin-top: 0.5rem;
+  }
+
+  .article-content blockquote {
+    padding: 1rem 1.5rem;
+    border-left: 3px solid var(--color-orbit-blue);
+    background: color-mix(in srgb, var(--color-mist) 45%, transparent);
+    color: color-mix(in srgb, var(--color-ink) 75%, transparent);
+  }
+
+  .article-content code {
+    border: 1px solid var(--color-line-dark);
+    border-radius: 0.25rem;
+    background: color-mix(in srgb, var(--color-mist) 55%, transparent);
+    padding: 0.12rem 0.35rem;
+    font-family: var(--font-data);
+    font-size: 0.9em;
+  }
+
+  .article-content pre {
+    overflow-x: auto;
+    border: 1px solid var(--color-line-dark);
+    background: var(--color-ink);
+    padding: 1.25rem;
+    color: var(--color-paper);
+  }
+
+  .article-content pre code {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: inherit;
+  }
+
+  .article-content img {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--color-line-dark);
+  }
+
+  .article-content hr {
+    margin-block: 3.5rem;
+    border: 0;
+    border-top: 1px solid var(--color-line-dark);
+  }
+
+  .article-content table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+  }
+
+  .article-content th,
+  .article-content td {
+    border: 1px solid var(--color-line-dark);
+    padding: 0.65rem 0.8rem;
+    text-align: left;
+  }
+
+  .article-content th {
+    background: color-mix(in srgb, var(--color-mist) 55%, transparent);
+    font-family: var(--font-data);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
   }
 }
 
