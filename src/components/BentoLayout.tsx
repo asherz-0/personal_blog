@@ -183,7 +183,7 @@ export function BentoLayout() {
               Archive
             </button>
             <a
-              href="https://github.com/asherz-0"
+              href="https://github.com/asherzj"
               target="_blank"
               rel="noreferrer"
               className="pb-1 uppercase transition-opacity hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"

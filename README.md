@@ -56,21 +56,21 @@ npm run build
 npm run preview
 ```
 
-## 首次发布到 GitHub Pages
+## 发布到 GitHub Pages
 
-当前远端是 `asherz-0/personal_blog`。保持这个仓库名时，站点地址是：
+当前仓库是 `asherzj/asherzj.github.io`，对应的用户站点地址是：
 
 ```text
-https://asherz-0.github.io/personal_blog/
+https://asherzj.github.io/
 ```
 
-如果需要不带仓库子路径的用户站点 `https://asherz-0.github.io`，GitHub 要求仓库名恰好是 `asherz-0.github.io`。先在仓库的 **Settings → General → Repository name** 中把 `personal_blog` 改成 `asherz-0.github.io`，再更新本地远端：
+本地远端应指向：
 
 ```bash
-git remote set-url origin git@github.com:asherz-0/asherz-0.github.io.git
+git remote set-url origin https://github.com/asherzj/asherzj.github.io.git
 ```
 
-两种仓库名都使用同一套部署配置。首次部署前，到仓库的 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。之后，只要提交进入 `main`，`Deploy blog to GitHub Pages` 就会自动执行；也可以在 **Actions** 页面手动运行。
+仓库的 **Settings → Pages → Build and deployment → Source** 使用 **GitHub Actions**。之后，只要提交进入 `main`，`Deploy blog to GitHub Pages` 就会自动执行；也可以在 **Actions** 页面手动运行。
 
 如果远端仓库尚未有本地 `main`，第一次推送使用：
 
