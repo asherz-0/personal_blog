@@ -9,20 +9,16 @@ import {
   UI_COPY,
   type Language,
 } from '../lib/i18n';
+import {
+  createHomeUrl,
+  createPostUrl,
+  getPendingPostSlug,
+  getPostSlug,
+  persistPendingPostSlug,
+} from '../lib/post-route';
 import {getPostBySlug, posts, type Post} from '../lib/posts';
 import {PostComments} from './PostComments';
 import {StableCopy, StableLocalizedText} from './StableCopy';
-
-function slugFromHash(): string | null {
-  const match = window.location.hash.match(/^#\/posts\/([^/?#]+)$/);
-  if (!match) return null;
-
-  try {
-    return decodeURIComponent(match[1]);
-  } catch {
-    return null;
-  }
-}
 
 function displayDate(date: string): string {
   return date.replaceAll('-', '.');
@@ -37,6 +33,23 @@ function setDescription(content: string): void {
 function resolveMarkdownAsset(source: string | undefined): string | undefined {
   if (!source?.startsWith('/')) return source;
   return `${import.meta.env.BASE_URL}${source.slice(1)}`;
+}
+
+function syncPostLocation(): string | null {
+  const currentUrl = new URL(window.location.href);
+  const slug = getPostSlug(currentUrl, getPendingPostSlug());
+
+  if (!slug || !getPostBySlug(slug)) {
+    if (!currentUrl.searchParams.has('giscus')) persistPendingPostSlug(null);
+    return null;
+  }
+
+  const nextUrl = createPostUrl(currentUrl, slug);
+  if (nextUrl.href !== currentUrl.href) {
+    history.replaceState(null, '', nextUrl);
+  }
+  persistPendingPostSlug(slug);
+  return slug;
 }
 
 function ReadingView({
@@ -131,7 +144,7 @@ function ReadingView({
 }
 
 export function BentoLayout() {
-  const [activeSlug, setActiveSlug] = useState<string | null>(() => slugFromHash());
+  const [activeSlug, setActiveSlug] = useState<string | null>(() => syncPostLocation());
   const [language, setLanguage] = useState<Language>(() => getInitialLanguage());
   const copy = UI_COPY[language];
   const selectedPost = useMemo(
@@ -141,9 +154,13 @@ export function BentoLayout() {
   const latestDate = posts[0]?.date;
 
   useEffect(() => {
-    const syncHash = () => setActiveSlug(slugFromHash());
-    window.addEventListener('hashchange', syncHash);
-    return () => window.removeEventListener('hashchange', syncHash);
+    const syncRoute = () => setActiveSlug(syncPostLocation());
+    window.addEventListener('hashchange', syncRoute);
+    window.addEventListener('popstate', syncRoute);
+    return () => {
+      window.removeEventListener('hashchange', syncRoute);
+      window.removeEventListener('popstate', syncRoute);
+    };
   }, []);
 
   useEffect(() => {
@@ -158,12 +175,16 @@ export function BentoLayout() {
   }, [copy.htmlLang, language]);
 
   function openPost(slug: string): void {
-    window.location.hash = `/posts/${encodeURIComponent(slug)}`;
+    const nextUrl = createPostUrl(new URL(window.location.href), slug);
+    history.pushState(null, '', nextUrl);
+    persistPendingPostSlug(slug);
     setActiveSlug(slug);
   }
 
   function closePost(): void {
-    history.pushState(null, '', `${window.location.pathname}${window.location.search}`);
+    const nextUrl = createHomeUrl(new URL(window.location.href));
+    history.pushState(null, '', nextUrl);
+    persistPendingPostSlug(null);
     setActiveSlug(null);
   }
 
