@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useState} from 'react';
 import {AnimatePresence, motion} from 'motion/react';
-import {ArrowLeft, Diamond} from 'lucide-react';
+import {ArrowLeft, ArrowUpRight, Diamond} from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -292,9 +292,24 @@ export function BentoLayout() {
                   </div>
                 </div>
 
+                <section className="flex flex-col border-b border-line-dark bg-paper" aria-labelledby="reading-title">
+                  <div className="border-b border-line-dark bg-paper p-8">
+                    <h2 id="reading-title" className="text-label text-ink/50">{copy.thingsConsumeLabel}</h2>
+                  </div>
+                  <div className="flex flex-col bg-dot-grid p-8 md:flex-row md:items-start">
+                    <div className="mb-6 w-full shrink-0 font-data text-label text-orbit-blue md:mb-0 md:w-1/4">
+                      {copy.readingPrinciple}
+                    </div>
+                    <div className="w-full md:w-2/4 md:pr-8">
+                      <h3 className="mb-3 font-display text-[1.5rem] font-semibold leading-snug">{copy.readingTitle}</h3>
+                      <p className="max-w-[58ch] text-body leading-relaxed text-ink/70">{copy.readingDescription}</p>
+                    </div>
+                  </div>
+                </section>
+
                 <section id="archive" className="flex scroll-mt-4 flex-col bg-paper" aria-labelledby="archive-title">
                   <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line-dark bg-paper/95 p-8 backdrop-blur">
-                    <h2 id="archive-title" className="text-label text-ink/50">{copy.postArchiveLabel}</h2>
+                    <h2 id="archive-title" className="text-label text-ink/50">{copy.thingsWriteLabel}</h2>
                     <div className="hidden font-data text-label text-ink/40 sm:block">
                       {copy.total}: {posts.length.toString().padStart(3, '0')}
                     </div>
@@ -334,6 +349,32 @@ export function BentoLayout() {
                     )}
                   </div>
                 </section>
+
+                <section className="flex flex-col border-t border-line-dark bg-paper" aria-labelledby="builds-title">
+                  <div className="border-b border-line-dark bg-paper p-8">
+                    <h2 id="builds-title" className="text-label text-ink/50">{copy.thingsBuildLabel}</h2>
+                  </div>
+                  <a
+                    href="https://github.com/asherzj/asherzj.github.io"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex flex-col bg-dot-grid p-8 transition-colors duration-300 hover:bg-mist/30 focus-visible:bg-mist/30 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-orbit-blue md:flex-row"
+                  >
+                    <div className="mb-6 w-full shrink-0 font-data text-label text-orbit-blue md:mb-0 md:w-1/4">
+                      {copy.projectCategory}
+                    </div>
+                    <div className="w-full md:w-2/4 md:pr-8">
+                      <h3 className="mb-3 font-display text-[1.5rem] transition-colors duration-300 group-hover:text-orbit-blue">
+                        {copy.projectTitle}
+                      </h3>
+                      <p className="max-w-[58ch] text-body leading-relaxed text-ink/70">{copy.projectDescription}</p>
+                    </div>
+                    <div className="mt-6 flex w-full items-center font-data text-label text-ink/40 transition-colors duration-300 group-hover:text-orbit-blue md:mt-0 md:w-1/4 md:justify-end">
+                      <span>[ {copy.viewProject} ]</span>
+                      <ArrowUpRight className="ml-2" size={14} aria-hidden="true" />
+                    </div>
+                  </a>
+                </section>
               </motion.div>
             )}
           </AnimatePresence>
@@ -358,11 +399,15 @@ export function BentoLayout() {
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-2" aria-hidden="true">
-            <div className="h-4 w-4 rounded-full bg-ink" />
-            <div className="h-4 w-4 rounded-full border border-line-dark bg-mist" />
-            <div className="h-4 w-4 rounded-full bg-orbit-blue" />
-          </div>
+          <a
+            href="https://x.com/AsherZhao12"
+            target="_blank"
+            rel="noreferrer"
+            aria-label={copy.xProfileLabel}
+            className="border-b border-ink pb-1 font-data text-[0.65rem] font-medium tracking-widest transition-colors hover:border-orbit-blue hover:text-orbit-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
+          >
+            X / @ASHERZHAO12
+          </a>
 
           <div className="flex items-center gap-4">
             <div className="hidden font-data text-[0.65rem] font-medium tracking-widest sm:block">{copy.builtFromMarkdown}</div>
