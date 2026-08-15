@@ -49,8 +49,9 @@ PAGES_BASE_PATH=/personal_blog npm run build
 2. `src/App.tsx` 只渲染 `src/components/BentoLayout.tsx`。
 3. `src/lib/posts.ts` 通过 eager `import.meta.glob('/posts/*.md', {query: '?raw'})` 导入所有 Markdown，并在模块加载时解析、去重、排除草稿和排序。
 4. `src/lib/post-parser.ts` 负责 slug、frontmatter、日期、正文和阅读时长校验。
-5. `BentoLayout.tsx` 同时实现首页、档案列表、阅读视图和 `#/posts/<slug>` 哈希导航；项目没有 React Router。
-6. `src/index.css` 定义 Tailwind v4 主题 token、排版、Markdown 正文样式和 reduced-motion 降级。
+5. `src/lib/i18n.ts` 定义中英文界面词典，并通过 `localStorage` 保存页面组件语言；博文内容不自动翻译。
+6. `BentoLayout.tsx` 同时实现首页、档案列表、阅读视图、语言切换和 `#/posts/<slug>` 哈希导航；项目没有 React Router。
+7. `src/index.css` 定义 Tailwind v4 主题 token、排版、Markdown 正文样式和 reduced-motion 降级。
 
 `Articles.tsx`、`Connect.tsx`、`Header.tsx`、`Hero.tsx`、`Invite.tsx`、`Observe.tsx` 当前均未被运行时入口导入，属于遗留/候选展示组件。不要误以为修改它们会改变线上页面；复用或删除前先重新检查引用。
 
