@@ -151,8 +151,8 @@ export function BentoLayout() {
   }
 
   return (
-    <div className="min-h-[100dvh] w-full bg-white p-0 transition-all duration-500 md:p-4">
-      <div className="mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-[1440px] flex-col overflow-hidden bg-paper transition-all duration-500 md:rounded-3xl md:border md:border-line-dark">
+    <div className="min-h-[100dvh] w-full bg-paper transition-all duration-500">
+      <div className="flex min-h-[100dvh] w-full flex-col overflow-hidden bg-paper transition-all duration-500">
         <header className="relative z-20 flex shrink-0 items-center justify-between border-b border-line-dark bg-paper px-5 py-5 sm:px-8">
           <button
             type="button"
