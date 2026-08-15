@@ -56,31 +56,29 @@ npm run build
 npm run preview
 ```
 
-## 首次发布到 `asherz-0.github.io`
+## 首次发布到 GitHub Pages
 
-GitHub 用户站点的仓库名必须与域名一致，因此目标远端必须是公开仓库 `asherz-0/asherz-0.github.io`。当前本地仓库尚未配置远端；完成一次 GitHub 登录后可以这样创建并推送：
+当前远端是 `asherz-0/personal_blog`。保持这个仓库名时，站点地址是：
 
-```bash
-gh auth login -h github.com
-gh repo create asherz-0.github.io --public --source=. --remote=origin --push
+```text
+https://asherz-0.github.io/personal_blog/
 ```
 
-如果你已经在网页上创建了仓库，则使用：
+如果需要不带仓库子路径的用户站点 `https://asherz-0.github.io`，GitHub 要求仓库名恰好是 `asherz-0.github.io`。先在仓库的 **Settings → General → Repository name** 中把 `personal_blog` 改成 `asherz-0.github.io`，再更新本地远端：
 
 ```bash
-git remote add origin git@github.com:asherz-0/asherz-0.github.io.git
+git remote set-url origin git@github.com:asherz-0/asherz-0.github.io.git
+```
+
+两种仓库名都使用同一套部署配置。首次部署前，到仓库的 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。之后，只要提交进入 `main`，`Deploy blog to GitHub Pages` 就会自动执行；也可以在 **Actions** 页面手动运行。
+
+如果远端仓库尚未有本地 `main`，第一次推送使用：
+
+```bash
 git push -u origin main
 ```
 
-首次推送后，到仓库的 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。然后在 **Actions** 页面重新运行 `Deploy blog to GitHub Pages`，或从本地再次推送一个提交。
-
-部署完成后站点地址是：
-
-```text
-https://asherz-0.github.io
-```
-
-工作流也兼容普通项目仓库：若仓库名不是 `asherz-0.github.io`，构建会自动使用 GitHub Pages 返回的子路径，地址将是 `https://asherz-0.github.io/<仓库名>/`。
+工作流通过 GitHub Pages 返回的部署路径自动区分用户站点和项目站点，不需要手工修改 Vite 的 `base`。
 
 ## 内容管线
 
