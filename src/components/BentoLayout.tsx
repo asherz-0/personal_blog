@@ -35,11 +35,10 @@ export function BentoLayout() {
   const selectedPost = POSTS.find(p => p.id === selectedPostId);
 
   return (
-    <div className="min-h-screen w-full bg-white flex items-center justify-center p-4 sm:p-8 md:p-12 transition-all duration-500">
+    <div className="min-h-[100dvh] w-full bg-paper transition-all duration-500">
       {/* Main Bento Container */}
       <div 
-        className="w-full max-w-[1400px] bg-paper border border-line-dark rounded-[1.5rem] overflow-hidden flex flex-col shadow-2xl transition-all duration-500"
-        style={{ minHeight: 'max(800px, 85vh)' }}
+        className="min-h-[100dvh] w-full bg-paper overflow-hidden flex flex-col transition-all duration-500"
       >
         
         {/* Header Row */}
@@ -273,4 +272,3 @@ export function BentoLayout() {
     </div>
   );
 }
-
