@@ -1,121 +1,244 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Diamond, ArrowLeft } from 'lucide-react';
+import {useEffect, useMemo, useState} from 'react';
+import {AnimatePresence, motion} from 'motion/react';
+import {ArrowLeft, Diamond} from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import {getPostBySlug, posts, type Post} from '../lib/posts';
 
-// --- MOCK DATA ---
-const POSTS = [
-  {
-    id: '1',
-    title: 'The Architecture of Optimism',
-    date: '2024.05.21',
-    category: 'ESSAY',
-    excerpt: '探讨技术如何重塑我们对未来的期望，以及工程师在其中承担的设计责任。',
-    content: '我们生活在一个被技术重塑的时代。每一次代码的提交，每一次像素的对齐，都在微小地改变着人们与世界的交互方式。\n\n在构建系统时，我们不仅是在搭建逻辑的脚手架，更是在设计未来的可能性。乐观主义不仅是一种情绪，更是一种工程要求。没有对未知的期待，我们就无法在复杂的系统崩溃中找到修复的路径。\n\n从架构的视角来看，这意味着我们需要在设计初期就考虑系统的容错性与可延展性。就像我们在UI中留出的「呼吸感」，系统的底层也需要留白，为未来的功能生长提供空间。'
-  },
-  {
-    id: '2',
-    title: 'Precision in the Browser',
-    date: '2024.04.12',
-    category: 'ENGINEERING',
-    excerpt: '在前端开发中引入工程级精度的尝试：从排版比例到亚像素级渲染优化。',
-    content: '前端开发经常被视为一门「近似」的艺术，但实际上，浏览器提供了一个极其精确的渲染引擎。\n\n这篇文章探讨了如何利用 CSS clamp() 函数建立动态而精确的排版比例（Typographic Scale），并结合真实的视口数据进行亚像素级的对齐。\n\n真正的精度不在于使用了多小的小数点，而在于系统地管理页面中所有元素的相对关系。当我们说一个界面具有「秩序感」时，往往是因为背后的数学网格在起作用。'
-  },
-  {
-    id: '3',
-    title: 'Designing for Human Scale',
-    date: '2024.02.28',
-    category: 'DESIGN',
-    excerpt: '当系统变得庞大，我们如何保留界面的“呼吸感”与人的尺度。',
-    content: '随着AI技术的发展，我们正在面对越来越复杂的数据维度和功能集。界面的密度不可避免地在增加。\n\n然而，人的认知带宽并没有随之增加。我们需要回归「人类尺度」（Human Scale）的设计理念。\n\n这意味着不盲目追求一屏展示所有信息，而是通过视觉层级（Hierarchy）和渐进式披露（Progressive Disclosure），让用户在需要的时候看到正确的信息。设计不应该引起焦虑，它应当像一个可靠的向导。'
+const SITE_TITLE = "Asher's Personal Archive";
+const SITE_DESCRIPTION = '关于技术、系统与个人成长的写作档案。';
+
+function slugFromHash(): string | null {
+  const match = window.location.hash.match(/^#\/posts\/([^/?#]+)$/);
+  if (!match) return null;
+
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return null;
   }
-];
+}
+
+function displayDate(date: string): string {
+  return date.replaceAll('-', '.');
+}
+
+function setDescription(content: string): void {
+  document
+    .querySelector<HTMLMetaElement>('meta[name="description"]')
+    ?.setAttribute('content', content);
+}
+
+function resolveMarkdownAsset(source: string | undefined): string | undefined {
+  if (!source?.startsWith('/')) return source;
+  return `${import.meta.env.BASE_URL}${source.slice(1)}`;
+}
+
+function ReadingView({post, onClose}: {post: Post; onClose: () => void}) {
+  return (
+    <motion.div
+      key={post.slug}
+      initial={{opacity: 0, y: 10}}
+      animate={{opacity: 1, y: 0}}
+      exit={{opacity: 0, y: -10}}
+      transition={{duration: 0.35, ease: [0.22, 1, 0.36, 1]}}
+      className="flex min-h-[60vh] w-full flex-col bg-dot-grid"
+    >
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line-dark bg-paper/95 p-6 backdrop-blur sm:p-8">
+        <button
+          type="button"
+          onClick={onClose}
+          className="group flex items-center gap-2 font-data text-label text-ink transition-colors hover:text-orbit-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
+        >
+          <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" />
+          <span>RETURN TO ARCHIVE</span>
+        </button>
+        <div className="hidden font-data text-label text-ink/40 sm:block">
+          READING MODE // {post.readingMinutes.toString().padStart(2, '0')} MIN
+        </div>
+      </div>
+
+      <div className="flex flex-grow justify-center p-8 sm:p-12 md:p-24">
+        <article className="w-full max-w-[65ch]">
+          <header className="mb-16 md:mb-24">
+            <div className="mb-8 flex items-center gap-4 border-l-2 border-orbit-blue pl-4">
+              <time dateTime={post.date} className="font-data text-label text-ink/50">
+                {displayDate(post.date)}
+              </time>
+              <span className="font-data text-label text-orbit-blue">{post.category}</span>
+            </div>
+            <h1 className="font-display text-h1 leading-[1.1] tracking-tight">{post.title}</h1>
+            <p className="mt-8 text-lg text-ink/65">{post.excerpt}</p>
+          </header>
+
+          <div className="article-content text-ink/85">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                a: ({href, children, ...props}) => {
+                  const external = Boolean(href && /^https?:\/\//.test(href));
+                  return (
+                    <a
+                      {...props}
+                      href={href}
+                      target={external ? '_blank' : undefined}
+                      rel={external ? 'noreferrer' : undefined}
+                    >
+                      {children}
+                    </a>
+                  );
+                },
+                img: ({src, alt, ...props}) => (
+                  <img {...props} src={resolveMarkdownAsset(src)} alt={alt ?? ''} loading="lazy" />
+                ),
+              }}
+            >
+              {post.content}
+            </ReactMarkdown>
+          </div>
+
+          <div className="mt-24 flex items-center justify-between border-t border-line-dark pt-8 font-data text-label text-ink/40">
+            <div>END OF POST</div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="transition-colors hover:text-orbit-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
+            >
+              [ CLOSE ]
+            </button>
+          </div>
+        </article>
+      </div>
+    </motion.div>
+  );
+}
 
 export function BentoLayout() {
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const selectedPost = POSTS.find(p => p.id === selectedPostId);
+  const [activeSlug, setActiveSlug] = useState<string | null>(() => slugFromHash());
+  const selectedPost = useMemo(
+    () => (activeSlug ? getPostBySlug(activeSlug) : undefined),
+    [activeSlug],
+  );
+  const latestDate = posts[0]?.date;
+
+  useEffect(() => {
+    const syncHash = () => setActiveSlug(slugFromHash());
+    window.addEventListener('hashchange', syncHash);
+    return () => window.removeEventListener('hashchange', syncHash);
+  }, []);
+
+  useEffect(() => {
+    document.title = selectedPost ? `${selectedPost.title} — ${SITE_TITLE}` : SITE_TITLE;
+    setDescription(selectedPost?.excerpt ?? SITE_DESCRIPTION);
+    window.scrollTo({top: 0, behavior: 'instant'});
+  }, [selectedPost]);
+
+  function openPost(slug: string): void {
+    window.location.hash = `/posts/${encodeURIComponent(slug)}`;
+    setActiveSlug(slug);
+  }
+
+  function closePost(): void {
+    history.pushState(null, '', `${window.location.pathname}${window.location.search}`);
+    setActiveSlug(null);
+  }
+
+  function showArchive(): void {
+    closePost();
+    requestAnimationFrame(() => {
+      document.getElementById('archive')?.scrollIntoView({behavior: 'smooth'});
+    });
+  }
 
   return (
-    <div className="min-h-screen w-full bg-white flex items-center justify-center p-4 sm:p-8 md:p-12 transition-all duration-500">
-      {/* Main Bento Container */}
-      <div 
-        className="w-full max-w-[1400px] bg-paper border border-line-dark rounded-[1.5rem] overflow-hidden flex flex-col shadow-2xl transition-all duration-500"
-        style={{ minHeight: 'max(800px, 85vh)' }}
-      >
-        
-        {/* Header Row */}
-        <header className="flex items-center justify-between px-8 py-5 border-b border-line-dark shrink-0 bg-paper relative z-20">
-          <div className="flex items-center gap-4 cursor-pointer" onClick={() => setSelectedPostId(null)}>
-            <div className="w-8 h-8 bg-ink rounded flex items-center justify-center text-paper">
+    <div className="min-h-[100dvh] w-full bg-white p-0 transition-all duration-500 md:p-4">
+      <div className="mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-[1440px] flex-col overflow-hidden bg-paper transition-all duration-500 md:rounded-3xl md:border md:border-line-dark">
+        <header className="relative z-20 flex shrink-0 items-center justify-between border-b border-line-dark bg-paper px-5 py-5 sm:px-8">
+          <button
+            type="button"
+            className="flex items-center gap-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
+            onClick={closePost}
+            aria-label="返回首页"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded bg-ink text-paper">
               <Diamond size={18} fill="currentColor" />
-            </div>
-            <div className="font-data text-xs tracking-[0.2em] font-medium hidden sm:block">
+            </span>
+            <span className="hidden font-data text-xs font-medium tracking-[0.2em] sm:block">
               FRONTIER // OPTIMISM
-            </div>
-          </div>
-          <nav className="flex items-center gap-6 sm:gap-8 font-data text-[0.65rem] sm:text-xs tracking-[0.1em]">
-            <button 
-              onClick={() => setSelectedPostId(null)} 
-              className={`${!selectedPostId ? 'border-b border-ink font-semibold' : 'hover:opacity-60'} pb-1 transition-opacity uppercase`}
+            </span>
+          </button>
+          <nav className="flex items-center gap-5 font-data text-[0.65rem] tracking-[0.1em] sm:gap-8 sm:text-xs" aria-label="主要导航">
+            <button
+              type="button"
+              onClick={closePost}
+              className={`${!selectedPost ? 'border-b border-ink font-semibold' : 'hover:opacity-60'} pb-1 uppercase transition-opacity focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue`}
             >
               Journal
             </button>
-            <button className="hover:opacity-60 transition-opacity uppercase pb-1">Archive</button>
-            <button className="hover:opacity-60 transition-opacity uppercase pb-1 hidden md:block">Prototypes</button>
-            <button className="hover:opacity-60 transition-opacity uppercase pb-1">About</button>
+            <button
+              type="button"
+              onClick={showArchive}
+              className="pb-1 uppercase transition-opacity hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
+            >
+              Archive
+            </button>
+            <a
+              href="https://github.com/asherz-0"
+              target="_blank"
+              rel="noreferrer"
+              className="pb-1 uppercase transition-opacity hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
+            >
+              Connect
+            </a>
           </nav>
         </header>
 
-        {/* Content Area with Animation */}
-        <div className="flex flex-col flex-grow relative overflow-hidden bg-paper">
+        <main className="relative flex flex-grow flex-col overflow-hidden bg-paper">
           <AnimatePresence mode="wait">
-            {!selectedPostId ? (
-              <motion.div 
+            {selectedPost ? (
+              <ReadingView post={selectedPost} onClose={closePost} />
+            ) : (
+              <motion.div
                 key="home"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="flex flex-col w-full h-full"
+                initial={{opacity: 0, y: 10}}
+                animate={{opacity: 1, y: 0}}
+                exit={{opacity: 0, y: -10}}
+                transition={{duration: 0.35, ease: [0.22, 1, 0.36, 1]}}
+                className="flex h-full w-full flex-col"
               >
-                {/* Hero Section (Bento Grid) */}
-                <div className="flex flex-col lg:flex-row w-full border-b border-line-dark shrink-0">
-                  {/* Left Panel (00 CONCEPT) */}
-                  <div className="w-full lg:w-[55%] xl:w-[60%] border-b lg:border-b-0 lg:border-r border-line-dark bg-dot-grid flex flex-col relative p-8 lg:p-12 xl:p-16">
-                    <div className="text-label text-ink/50 mb-auto">00 // CONCEPT</div>
-                    
-                    <div className="mt-12 lg:mt-24 mb-16">
-                      <h1 className="font-display font-bold text-ink leading-[0.9] tracking-tighter mb-8 break-keep text-[3.5rem] sm:text-[4.5rem] xl:text-[6rem]">
-                        看见结构<br/>
+                <div className="flex w-full shrink-0 flex-col border-b border-line-dark lg:flex-row">
+                  <div className="relative flex w-full flex-col border-b border-line-dark bg-dot-grid p-8 lg:w-[60%] lg:border-b-0 lg:border-r lg:p-12 xl:p-16">
+                    <div className="mb-auto text-label text-ink/50">00 // CONCEPT</div>
+
+                    <div className="mb-16 mt-12 lg:mt-24">
+                      <h1 className="break-keep font-display text-[3.5rem] font-bold leading-[0.9] tracking-tighter text-ink sm:text-[4.5rem] xl:text-[6rem]">
+                        看见结构<br />
                         建立连接
                       </h1>
-                      <p className="text-body text-ink/80 max-w-[42ch]">
-                        从一处具体的草图，到可以运行的世界。这里记录着关于技术精度的追求与人类情感的共鸣。
+                      <p className="mt-8 max-w-[42ch] text-body text-ink/80">
+                        从一处具体的草图，到可以运行的世界。这里记录关于技术、系统与个人成长的长期思考。
                       </p>
                     </div>
 
-                    <div className="mt-auto pt-8 flex items-center gap-6">
-                      <button 
-                        onClick={() => {
-                          // Scroll to journal section
-                          document.getElementById('journal-feed')?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="bg-ink text-paper px-8 py-3 rounded-full font-display text-sm font-medium hover:bg-orbit-blue transition-colors duration-300"
+                    <div className="mt-auto flex items-center gap-6 pt-8">
+                      <button
+                        type="button"
+                        onClick={showArchive}
+                        className="rounded-full bg-ink px-8 py-3 font-display text-sm font-medium text-paper transition-colors duration-300 hover:bg-orbit-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
                       >
-                        阅读日志
+                        阅读档案
                       </button>
-                      <div className="text-label text-ink/40 font-data hidden sm:block">
-                        SYSTEM STATUS: READY // 2024.05.21
+                      <div className="hidden font-data text-label text-ink/40 sm:block">
+                        SYSTEM STATUS: READY{latestDate ? ` // ${displayDate(latestDate)}` : ''}
                       </div>
                     </div>
                   </div>
 
-                  {/* Right Panel */}
-                  <div className="w-full lg:w-[45%] xl:w-[40%] flex flex-col">
-                    {/* Right Top (01 OBSERVE) */}
-                    <div className="flex-grow min-h-[300px] bg-mist border-b border-line-dark p-8 relative flex flex-col">
-                      <div className="text-label text-ink/60 z-10">01 // OBSERVE</div>
-                      <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none">
-                        <svg viewBox="0 0 100 100" className="w-[80%] h-[80%] stroke-line-dark fill-none stroke-[0.3]">
+                  <div className="flex w-full flex-col lg:w-[40%]">
+                    <div className="relative flex min-h-[300px] flex-grow flex-col border-b border-line-dark bg-mist p-8">
+                      <div className="z-10 text-label text-ink/60">01 // OBSERVE</div>
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
+                        <svg viewBox="0 0 100 100" className="h-[80%] w-[80%] fill-none stroke-line-dark stroke-[0.3]" aria-hidden="true">
                           <line x1="50" y1="0" x2="50" y2="100" />
                           <line x1="0" y1="50" x2="100" y2="50" />
                           <circle cx="50" cy="50" r="40" />
@@ -124,153 +247,105 @@ export function BentoLayout() {
                           <path d="M48 50 L52 50 M50 48 L50 52" className="stroke-[0.5]" />
                         </svg>
                       </div>
-                      <div className="mt-auto text-right text-[0.55rem] font-data tracking-widest text-ink/50 z-10 leading-relaxed">
-                        COORD: 39.9042° N<br/>
-                        SCALE: 1:1.000
+                      <div className="z-10 mt-auto text-right font-data text-[0.55rem] leading-relaxed tracking-widest text-ink/50">
+                        SOURCE: MARKDOWN<br />
+                        INDEX: AUTOMATIC
                       </div>
                     </div>
 
-                    {/* Right Bottom Split (02 CONNECT & 03 BUILD) */}
-                    <div className="flex flex-col sm:flex-row min-h-[200px]">
-                      <div className="w-full sm:w-1/2 border-b sm:border-b-0 sm:border-r border-line-dark p-6 xl:p-8 flex flex-col bg-dot-grid relative">
-                        <div className="text-label text-ink/50 mb-6">02 // CONNECT</div>
-                        <h3 className="font-display font-semibold text-lg mb-2 leading-snug">
-                          思维的颗粒与叙事。
-                        </h3>
-                        <p className="text-sm text-ink/70 leading-relaxed">
-                          在破碎中寻找秩序。
-                        </p>
+                    <div className="flex min-h-[200px] flex-col sm:flex-row">
+                      <div className="relative flex w-full flex-col border-b border-line-dark bg-dot-grid p-6 sm:w-1/2 sm:border-b-0 sm:border-r xl:p-8">
+                        <div className="mb-6 text-label text-ink/50">02 // CONNECT</div>
+                        <h2 className="mb-2 font-display text-lg font-semibold leading-snug">思维的颗粒与叙事。</h2>
+                        <p className="text-sm leading-relaxed text-ink/70">在破碎中寻找秩序。</p>
                       </div>
-                      <div className="w-full sm:w-1/2 p-6 xl:p-8 flex flex-col bg-dot-grid relative">
-                        <div className="text-label text-ink/50 mb-6">03 // BUILD</div>
-                        <h3 className="font-display font-semibold text-lg mb-2 leading-snug">
-                          运行逻辑代码。
-                        </h3>
-                        <p className="text-sm text-ink/70 leading-relaxed">
-                          创造不应受制于工具。
-                        </p>
+                      <div className="relative flex w-full flex-col bg-dot-grid p-6 sm:w-1/2 xl:p-8">
+                        <div className="mb-6 text-label text-ink/50">03 // BUILD</div>
+                        <h2 className="mb-2 font-display text-lg font-semibold leading-snug">让文字持续发布。</h2>
+                        <p className="text-sm leading-relaxed text-ink/70">推送即构建，提交即更新。</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Blog Feed Section */}
-                <div id="journal-feed" className="flex flex-col bg-paper">
-                  <div className="p-8 border-b border-line-dark flex items-center justify-between sticky top-0 bg-paper/95 backdrop-blur z-10">
-                    <div className="text-label text-ink/50">04 // JOURNAL ARCHIVE</div>
-                    <div className="text-label font-data text-ink/40 hidden sm:block">TOTAL: {POSTS.length.toString().padStart(3, '0')}</div>
+                <section id="archive" className="flex scroll-mt-4 flex-col bg-paper" aria-labelledby="archive-title">
+                  <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line-dark bg-paper/95 p-8 backdrop-blur">
+                    <h2 id="archive-title" className="text-label text-ink/50">04 // POST ARCHIVE</h2>
+                    <div className="hidden font-data text-label text-ink/40 sm:block">
+                      TOTAL: {posts.length.toString().padStart(3, '0')}
+                    </div>
                   </div>
-                  
+
                   <div className="flex flex-col">
-                    {POSTS.map((post, idx) => (
-                      <article 
-                        key={post.id} 
-                        onClick={() => setSelectedPostId(post.id)}
-                        className="cursor-pointer group flex flex-col md:flex-row p-8 border-b border-line-dark last:border-b-0 hover:bg-mist/30 transition-colors duration-300"
-                      >
-                        <div className="w-full md:w-1/4 mb-4 md:mb-0 shrink-0">
-                          <div className="font-data text-label text-ink/50">{post.date}</div>
-                          <div className="font-data text-label text-orbit-blue mt-1">{post.category}</div>
-                        </div>
-                        <div className="w-full md:w-2/4 pr-8">
-                          <h3 className="text-h2 text-[1.5rem] font-display mb-3 group-hover:text-orbit-blue transition-colors duration-300">
-                            {post.title}
-                          </h3>
-                          <p className="text-body text-ink/70 leading-relaxed line-clamp-2">
-                            {post.excerpt}
-                          </p>
-                        </div>
-                        <div className="w-full md:w-1/4 flex items-end justify-end mt-6 md:mt-0 opacity-0 md:opacity-100 group-hover:opacity-100 transition-opacity duration-300 font-data text-label text-ink/40 group-hover:text-orbit-blue">
-                          [ READ ENTRY ]
-                        </div>
-                      </article>
-                    ))}
+                    {posts.length > 0 ? (
+                      posts.map((post) => (
+                        <article key={post.slug} className="border-b border-line-dark last:border-b-0">
+                          <button
+                            type="button"
+                            onClick={() => openPost(post.slug)}
+                            className="group flex w-full cursor-pointer flex-col p-8 text-left transition-colors duration-300 hover:bg-mist/30 focus-visible:bg-mist/30 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-orbit-blue md:flex-row"
+                            aria-label={`阅读：${post.title}`}
+                          >
+                            <div className="mb-4 w-full shrink-0 md:mb-0 md:w-1/4">
+                              <time dateTime={post.date} className="font-data text-label text-ink/50">
+                                {displayDate(post.date)}
+                              </time>
+                              <div className="mt-1 font-data text-label text-orbit-blue">{post.category}</div>
+                            </div>
+                            <div className="w-full pr-0 md:w-2/4 md:pr-8">
+                              <h3 className="mb-3 font-display text-[1.5rem] transition-colors duration-300 group-hover:text-orbit-blue">
+                                {post.title}
+                              </h3>
+                              <p className="line-clamp-2 text-body leading-relaxed text-ink/70">{post.excerpt}</p>
+                            </div>
+                            <div className="mt-6 flex w-full items-end justify-between font-data text-label text-ink/40 transition-colors duration-300 group-hover:text-orbit-blue md:mt-0 md:w-1/4 md:justify-end">
+                              <span className="md:hidden">{post.readingMinutes} MIN READ</span>
+                              <span>[ READ POST ]</span>
+                            </div>
+                          </button>
+                        </article>
+                      ))
+                    ) : (
+                      <p className="p-8 text-ink/60">还没有已发布的博文。</p>
+                    )}
                   </div>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div 
-                key="post"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="flex flex-col w-full min-h-[60vh] bg-dot-grid"
-              >
-                {/* Reading View Header */}
-                <div className="p-6 sm:p-8 border-b border-line-dark flex items-center justify-between sticky top-0 bg-paper/95 backdrop-blur z-10">
-                  <button 
-                    onClick={() => setSelectedPostId(null)}
-                    className="font-data text-label text-ink hover:text-orbit-blue flex items-center gap-2 transition-colors group"
-                  >
-                    <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> 
-                    <span>RETURN TO ARCHIVE</span>
-                  </button>
-                  <div className="text-label text-ink/40 font-data hidden sm:block">READING MODE // ACTIVE</div>
-                </div>
-
-                {/* Article Content */}
-                <div className="p-8 sm:p-12 md:p-24 flex justify-center flex-grow">
-                  <article className="w-full max-w-[65ch]">
-                    <header className="mb-16 md:mb-24">
-                      <div className="flex items-center gap-4 mb-8 border-l-2 border-orbit-blue pl-4">
-                        <span className="font-data text-label text-ink/50">{selectedPost?.date}</span>
-                        <span className="font-data text-label text-orbit-blue">{selectedPost?.category}</span>
-                      </div>
-                      <h1 className="text-h1 font-display leading-[1.1] tracking-tight">
-                        {selectedPost?.title}
-                      </h1>
-                    </header>
-                    <div className="text-body text-ink/80 whitespace-pre-wrap leading-[1.8] font-body text-[1.05rem]">
-                      {selectedPost?.content}
-                    </div>
-                    
-                    <div className="mt-24 pt-8 border-t border-line-dark flex justify-between items-center text-label font-data text-ink/40">
-                      <div>END OF ENTRY</div>
-                      <button onClick={() => setSelectedPostId(null)} className="hover:text-orbit-blue transition-colors">
-                        [ CLOSE ]
-                      </button>
-                    </div>
-                  </article>
-                </div>
+                </section>
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </main>
 
-        {/* Footer Bar */}
-        <footer className="px-8 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shrink-0 bg-paper border-t border-line-dark relative z-20">
+        <footer id="about" className="relative z-20 flex shrink-0 flex-col items-start justify-between gap-6 border-t border-line-dark bg-paper px-8 py-5 sm:flex-row sm:items-center">
           <div className="flex gap-12">
             <div>
-              <div className="text-[0.55rem] font-data text-ink/50 tracking-widest mb-1">LATENT SPACE</div>
-              <div className="font-display text-sm font-semibold tracking-tight">32.8 GB / Processed</div>
+              <div className="mb-1 font-data text-[0.55rem] tracking-widest text-ink/50">ARCHIVE STATE</div>
+              <div className="font-display text-sm font-semibold tracking-tight">
+                {posts.length.toString().padStart(3, '0')} POSTS / INDEXED
+              </div>
             </div>
-            
             <div className="hidden sm:block">
-              <div className="text-[0.55rem] font-data text-ink/50 tracking-widest mb-2">SIGNAL STRENGTH</div>
-              <div className="flex gap-1 items-end h-3">
-                <div className="w-4 h-[40%] bg-orbit-blue rounded-sm"></div>
-                <div className="w-4 h-[70%] bg-orbit-blue rounded-sm"></div>
-                <div className="w-4 h-full bg-orbit-blue rounded-sm"></div>
-                <div className="w-4 h-[30%] bg-line-dark rounded-sm"></div>
+              <div className="mb-2 font-data text-[0.55rem] tracking-widest text-ink/50">SIGNAL STRENGTH</div>
+              <div className="flex h-3 items-end gap-1" aria-hidden="true">
+                <div className="h-[40%] w-4 rounded-sm bg-orbit-blue" />
+                <div className="h-[70%] w-4 rounded-sm bg-orbit-blue" />
+                <div className="h-full w-4 rounded-sm bg-orbit-blue" />
+                <div className="h-[30%] w-4 rounded-sm bg-line-dark" />
               </div>
             </div>
           </div>
 
-          <div className="flex gap-2 items-center justify-center">
-            <div className="w-4 h-4 rounded-full bg-ink"></div>
-            <div className="w-4 h-4 rounded-full bg-mist border border-line-dark"></div>
-            <div className="w-4 h-4 rounded-full bg-orbit-blue"></div>
+          <div className="flex items-center justify-center gap-2" aria-hidden="true">
+            <div className="h-4 w-4 rounded-full bg-ink" />
+            <div className="h-4 w-4 rounded-full border border-line-dark bg-mist" />
+            <div className="h-4 w-4 rounded-full bg-orbit-blue" />
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="font-data text-[0.65rem] tracking-widest font-medium hidden sm:block">BUILT BY CURIOSITIES</div>
-            <div className="w-8 sm:w-12 h-[1px] bg-ink"></div>
+            <div className="hidden font-data text-[0.65rem] font-medium tracking-widest sm:block">BUILT FROM MARKDOWN</div>
+            <div className="h-px w-8 bg-ink sm:w-12" />
           </div>
         </footer>
-
       </div>
     </div>
   );
 }
-

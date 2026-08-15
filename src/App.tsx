@@ -1,4 +1,3 @@
-import React from 'react';
 import { BentoLayout } from './components/BentoLayout';
 
 export default function App() {
