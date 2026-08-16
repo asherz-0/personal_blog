@@ -41,7 +41,7 @@ export function TagFilter({
   if (tags.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-4 border-b border-line-dark bg-paper px-8 py-5 sm:flex-row sm:items-center">
+    <div className="flex flex-col gap-4 border-b border-line-dark bg-mist/30 px-8 py-5 sm:flex-row sm:items-center">
       <div className="shrink-0 font-data text-label text-ink/45">{label}</div>
       <div className="flex flex-wrap gap-2" role="group" aria-label={ariaLabel}>
         <button
