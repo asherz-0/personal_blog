@@ -708,7 +708,7 @@ export function BentoLayout() {
               aria-label={copy.xProfileLabel}
               className="border-b border-ink pb-1 transition-colors hover:border-orbit-blue hover:text-orbit-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
             >
-              X / @ASHERZHAO12
+              X
             </a>
             <a
               href="https://github.com/asherzj"
@@ -717,7 +717,7 @@ export function BentoLayout() {
               aria-label={copy.githubProfileLabel}
               className="border-b border-ink pb-1 transition-colors hover:border-orbit-blue hover:text-orbit-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orbit-blue"
             >
-              GITHUB / ASHERZJ
+              GITHUB
             </a>
           </div>
 
