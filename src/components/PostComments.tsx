@@ -36,9 +36,6 @@ export function PostComments({language, slug}: PostCommentsProps) {
         <h2 id={titleId} className="mt-4 font-display text-2xl font-semibold tracking-tight">
           <StableCopy language={language} copyKey="commentsTitle" />
         </h2>
-        <p className="mt-3 max-w-[58ch] text-sm leading-relaxed text-ink/60">
-          <StableCopy language={language} copyKey="commentsDescription" />
-        </p>
       </header>
 
       <div className="bg-dot-grid p-3 sm:p-6">
